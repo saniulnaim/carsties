@@ -9,7 +9,7 @@ namespace SearchService.Data
     {
         private const string IndexUid = "items";
 
-        public static async Task InitDb(WebApplication app)
+        public static async Task ConfigureIndex(WebApplication app)
         {
             //var client = app.Services.GetRequiredService<MeilisearchClient>();
 
@@ -57,6 +57,22 @@ namespace SearchService.Data
                 SortableAttributes = ["auctionEnd", "currentHighBid", "createdAt", "updatedAt", "make", "model"]
             });
             await client.WaitForTaskAsync(settingsTask.TaskUid);
+        }
+
+        //public static async Task<bool> IndexHasDocuments(MeilisearchClient client)
+        //{
+        //    var indexes = await client.GetAllIndexesAsync();
+        //    if (indexes.Results.All(i => i.Uid != IndexUid))
+        //        return false;
+
+        //    var starts = await client.Index(IndexUid).GetStatsAsync();
+        //    return starts.NumberOfDocuments > 0;
+        //}
+
+        public static async Task FetchMissingAuctions(WebApplication app)
+        {
+            var client = app.Services.GetRequiredService<MeilisearchClient>();
+            var index = client.Index(IndexUid);
 
             using var scope = app.Services.CreateScope();
             var auctionSvc = scope.ServiceProvider.GetRequiredService<AuctionSvcHttpClient>();
@@ -68,19 +84,8 @@ namespace SearchService.Data
                 return;
             }
 
-
             var addTask = await index.AddDocumentsAsync(items, primaryKey: "id");
             await client.WaitForTaskAsync(addTask.TaskUid);
-        }
-
-        public static async Task<bool> IndexHasDocuments(MeilisearchClient client)
-        {
-            var indexes = await client.GetAllIndexesAsync();
-            if (indexes.Results.All(i => i.Uid != IndexUid))
-                return false;
-
-            var starts = await client.Index(IndexUid).GetStatsAsync();
-            return starts.NumberOfDocuments > 0;
         }
     }
 }
