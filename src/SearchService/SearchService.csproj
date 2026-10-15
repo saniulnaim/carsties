@@ -7,7 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Mapster" Version="10.0.13" />
     <PackageReference Include="MeiliSearch" Version="0.20.0" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="6.50.2" />
+    <PackageReference Include="WolverineFx.RuntimeCompilation" Version="6.50.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Contracts\Contracts.csproj" />
   </ItemGroup>
 
 </Project>

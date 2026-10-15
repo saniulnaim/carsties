@@ -1,18 +1,20 @@
 ﻿using AuctionService.Data;
 using AuctionService.DTOs;
 using AuctionService.Entities;
+using Contracts;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using Wolverine;
 
 namespace AuctionService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuctionsController(AuctionDbContext context) : ControllerBase
+    public class AuctionsController(AuctionDbContext context, IMessageBus bus) : ControllerBase
     {
         [HttpGet]
         public async Task<ActionResult<List<AuctionDto>>> GetAuctions(string? date)
@@ -68,9 +70,11 @@ namespace AuctionService.Controllers
             //await outbox.PublishAsync(newAuction.Adapt<AuctionCreated>());
             //await outbox.SaveChangesAndFlushMessagesAsync();
             await context.SaveChangesAsync();
-            var auctionDto = auction.Adapt<AuctionDto>();
+            var newAuction = auction.Adapt<AuctionDto>();
 
-            return CreatedAtAction(nameof(GetAuction), new { id = auction.Id }, auctionDto);
+            await bus.PublishAsync(newAuction.Adapt<AuctionCreated>());
+
+            return CreatedAtAction(nameof(GetAuction), new { id = auction.Id }, newAuction);
         }
 
         [HttpPut("{id}")]
