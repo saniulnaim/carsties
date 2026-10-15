@@ -21,17 +21,17 @@ namespace AuctionService.Controllers
         {
             var query = context.Auctions.AsQueryable();
 
-            //if (!string.IsNullOrEmpty(date))
-            //{
-            //    if (!DateTime.TryParse(date, CultureInfo.InvariantCulture,
-            //            DateTimeStyles.AdjustToUniversal
-            //            | DateTimeStyles.AssumeUniversal, out var parsedDate))
-            //    {
-            //        return BadRequest("Invalid date");
-            //    }
+            if (!string.IsNullOrEmpty(date))
+            {
+                if (!DateTime.TryParse(date, CultureInfo.InvariantCulture,
+                        DateTimeStyles.AdjustToUniversal
+                        | DateTimeStyles.AssumeUniversal, out var parsedDate))
+                {
+                    return BadRequest("Invalid date");
+                }
 
-            //    query = query.Where(x => x.UpdatedAt > parsedDate);
-            //}
+                query = query.Where(x => x.UpdatedAt > parsedDate);
+            }
 
             var auctions = await query
                 .OrderBy(x => x.Item.Make)
