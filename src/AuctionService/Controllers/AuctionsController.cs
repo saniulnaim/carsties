@@ -9,12 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using Wolverine;
+using Wolverine.EntityFrameworkCore;
 
 namespace AuctionService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuctionsController(AuctionDbContext context, IMessageBus bus) : ControllerBase
+    public class AuctionsController(AuctionDbContext context, IDbContextOutbox<AuctionDbContext> outbox) : ControllerBase
     {
         [HttpGet]
         public async Task<ActionResult<List<AuctionDto>>> GetAuctions(string? date)
@@ -69,10 +70,11 @@ namespace AuctionService.Controllers
             //var newAuction = auction.Adapt<AuctionDto>();
             //await outbox.PublishAsync(newAuction.Adapt<AuctionCreated>());
             //await outbox.SaveChangesAndFlushMessagesAsync();
-            await context.SaveChangesAsync();
+            
             var newAuction = auction.Adapt<AuctionDto>();
 
-            await bus.PublishAsync(newAuction.Adapt<AuctionCreated>());
+            await outbox.PublishAsync(newAuction.Adapt<AuctionCreated>());
+            await outbox.SaveChangesAndFlushMessagesAsync();
 
             return CreatedAtAction(nameof(GetAuction), new { id = auction.Id }, newAuction);
         }
@@ -102,9 +104,9 @@ namespace AuctionService.Controllers
 
             var updatedAuction = updateAuctionDto.Adapt(auction.Item);
 
-            //await outbox.PublishAsync(updatedAuction.Adapt<AuctionUpdated>());
-            //await outbox.SaveChangesAndFlushMessagesAsync();
-            await context.SaveChangesAsync();
+            await outbox.PublishAsync(updatedAuction.Adapt<AuctionUpdated>());
+            await outbox.SaveChangesAndFlushMessagesAsync();
+            
             return NoContent();
         }
 
@@ -127,9 +129,9 @@ namespace AuctionService.Controllers
 
             context.Auctions.Remove(auction);
 
-            //await outbox.PublishAsync(auction.Adapt<AuctionDeleted>());
-            //await outbox.SaveChangesAndFlushMessagesAsync();
-            await context.SaveChangesAsync();
+            await outbox.PublishAsync(auction.Adapt<AuctionDeleted>());
+            await outbox.SaveChangesAndFlushMessagesAsync();
+
             return NoContent();
         }
 

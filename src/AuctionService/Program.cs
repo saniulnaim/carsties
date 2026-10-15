@@ -4,6 +4,8 @@ using Contracts;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Wolverine;
+using Wolverine.EntityFrameworkCore;
+using Wolverine.Postgresql;
 using Wolverine.RabbitMQ;
 
 TypeAdapterConfig.GlobalSettings.Scan(typeof(Program).Assembly);
@@ -12,9 +14,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddDbContext<AuctionDbContext>(options =>
+
+var connString = builder.Configuration.GetConnectionString("DefaultConnection");
+if(string.IsNullOrEmpty(connString)) 
+    throw new Exception("Connection string not found.");
+
+builder.Services.AddDbContextWithWolverineIntegration<AuctionDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseNpgsql(connString);
 });
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -22,6 +29,10 @@ builder.Services.AddProblemDetails();
 
 builder.Host.UseWolverine(opts =>
 {
+    opts.PersistMessagesWithPostgresql(connString, "auctions_rmq");
+    opts.UseEntityFrameworkCoreTransactions();
+    opts.Policies.UseDurableOutboxOnAllSendingEndpoints();
+
     opts.UseRabbitMq(rabbit =>
     {
         rabbit.HostName = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
@@ -29,9 +40,15 @@ builder.Host.UseWolverine(opts =>
         rabbit.Password = builder.Configuration["RabbitMQ:Password"] ?? "guest";
     })
     .DeclareExchange("auction-created", ex => ex.ExchangeType = ExchangeType.Fanout)
+    .DeclareExchange("auction-updated", ex => ex.ExchangeType = ExchangeType.Fanout)
+    .DeclareExchange("auction-deleted", ex => ex.ExchangeType = ExchangeType.Fanout)
     .AutoProvision();
 
-    opts.PublishMessage<AuctionCreated>().ToRabbitExchange("auction-created"); ;
+    opts.PublishMessage<AuctionCreated>().ToRabbitExchange("auction-created");
+    opts.PublishMessage<AuctionUpdated>().ToRabbitExchange("auction-updated");
+    opts.PublishMessage<AuctionDeleted>().ToRabbitExchange("auction-deleted");
+
+    opts.ListenToRabbitQueue("wolverine-dead-letter-queue");
 });
 
 var app = builder.Build();

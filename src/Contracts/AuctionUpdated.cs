@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Contracts
 {
-    public class AcutionUpdated
+    public class AuctionUpdated
     {
         public required string Id { get; set; }
         public string? Make { get; set; }
