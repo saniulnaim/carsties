@@ -1,4 +1,4 @@
-﻿using Contracts;
+using Contracts;
 using Meilisearch;
 
 namespace SearchService.Handlers
@@ -7,7 +7,7 @@ namespace SearchService.Handlers
     {
         public async Task Handle(AuctionUpdated message, MeilisearchClient client)
         {
-            await client.Index("items").AddDocumentsAsync([message]);
+            await client.Index("items").UpdateDocumentsAsync([message]);
         }
     }
 }
