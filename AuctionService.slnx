@@ -1,7 +1,8 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/AuctionService/AuctionService.csproj" />
-    <Project Path="src/Contracts/Contracts.csproj" Id="6b747e7c-b29f-4fc3-beb6-6bd308070436" />
-    <Project Path="src/SearchService/SearchService.csproj" Id="e4b84ada-b24c-4538-9cc9-a13d428dd5d5" />
+    <Project Path="D:/Personal Work/Udemy Projects/carsties/src/AuctionService/AuctionService.csproj" />
+    <Project Path="D:/Personal Work/Udemy Projects/carsties/src/Contracts/Contracts.csproj" Id="6b747e7c-b29f-4fc3-beb6-6bd308070436" />
+    <Project Path="D:/Personal Work/Udemy Projects/carsties/src/IdentityService/IdentityService.csproj" Id="e9583b26-9f12-4e9f-951d-b21f7f792a87" />
+    <Project Path="D:/Personal Work/Udemy Projects/carsties/src/SearchService/SearchService.csproj" Id="e4b84ada-b24c-4538-9cc9-a13d428dd5d5" />
   </Folder>
 </Solution>
