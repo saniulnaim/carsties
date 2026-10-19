@@ -58,12 +58,13 @@ namespace AuctionService.Controllers
             return auction;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<AuctionDto>> CreateAuction(CreateAuctionDto createAuctionDto)
         {
             var auction = createAuctionDto.Adapt<Auction>();
 
-            auction.Seller = "TODO"; //User.Identity?.Name ?? throw new Exception("User has not been authenticated");
+            auction.Seller = User.Identity?.Name ?? throw new Exception("User has not been authenticated");
 
             context.Auctions.Add(auction);
 
@@ -79,6 +80,7 @@ namespace AuctionService.Controllers
             return CreatedAtAction(nameof(GetAuction), new { id = auction.Id }, newAuction);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAuction(string id, UpdateAuctionDto updateAuctionDto)
         {
@@ -98,7 +100,7 @@ namespace AuctionService.Controllers
                 return BadRequest("Cannot update an auction that has bids");
             }
 
-            //if (auction.Seller != User.Identity?.Name) return Forbid();
+            if (auction.Seller != User.Identity?.Name) return Forbid();
 
             auction.UpdatedAt = DateTime.UtcNow;
 
@@ -110,6 +112,7 @@ namespace AuctionService.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAuction(string id)
         {
@@ -125,7 +128,7 @@ namespace AuctionService.Controllers
                 return BadRequest("Cannot delete auction that has bids");
             }
 
-            //if (auction.Seller != User.Identity?.Name) return Forbid();
+            if (auction.Seller != User.Identity?.Name) return Forbid();
 
             context.Auctions.Remove(auction);
 
@@ -135,5 +138,12 @@ namespace AuctionService.Controllers
             return NoContent();
         }
 
+        [Authorize]
+        [HttpPost("test")]
+        public ActionResult<string> AuthTest()
+        {
+            var username = User.Identity?.Name;
+            return Ok($"Hello {username}, you are authenticated!");
+        }
     }
 }
